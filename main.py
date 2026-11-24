@@ -15,10 +15,26 @@ ENTRY_LINE = (
 )
 
 
+def validate(text):
+    """The gate the copy must clear: a real error message names the
+    broken thing, says what the user should do next, and stays honest —
+    no blaming the user, no fake error code."""
+    if not (1 <= len(text) <= 200):
+        raise SystemExit(f"entry is {len(text)} chars, must be 1-200")
+    if "\n" in text or text != text.strip():
+        raise SystemExit("entry must be a single clean line")
+    lowered = text.lower()
+    if "database" not in lowered:
+        raise SystemExit("entry must name what actually broke")
+    if "try again" not in lowered:
+        raise SystemExit("entry must tell the user what to do next")
+    if "your fault" in lowered or "user error" in lowered:
+        raise SystemExit("entry must not blame the user")
+
+
 def main() -> None:
     text = ENTRY_LINE.strip()
-    assert 1 <= len(text) <= 200, f"entry is {len(text)} chars, must be 1-200"
-    assert "\n" not in text, "entry must be a single line"
+    validate(text)
     out_dir = "/output"
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "entry.txt"), "w", encoding="utf-8") as f:
